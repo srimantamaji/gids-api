@@ -1,0 +1,1639 @@
+{
+  "swagger" : "2.0",
+  "info" : {
+    "version" : "1.0.1",
+    "title" : "Data Discovery APIs",
+    "description" : "Data Discovery APIs"
+  },
+  "securityDefinitions" : {
+    "Bearer" : {
+      "type" : "apiKey",
+      "name" : "Authorization",
+      "in" : "header"
+    }
+  },
+  "paths" : {
+    "/databases/types" : {
+      "get" : {
+        "tags" : [ "connection" ],
+        "security" : [ {
+          "Bearer" : [ ]
+        } ],
+        "description" : "lists all supported database types",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "$ref" : "#/parameters/offset"
+        }, {
+          "$ref" : "#/parameters/limit"
+        }, {
+          "in" : "query",
+          "name" : "filter",
+          "required" : false,
+          "description" : "filter out the list of databases",
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "schema" : {
+              "type" : "object",
+              "properties" : {
+                "types" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/definitions/entity"
+                  }
+                }
+              },
+              "example" : {
+                "types" : [ {
+                  "id" : "1111",
+                  "label" : "SQl Server"
+                }, {
+                  "id" : "1112",
+                  "label" : "Oracle"
+                } ]
+              }
+            }
+          },
+          "401" : {
+            "$ref" : "#/responses/AuthenticationError"
+          },
+          "404" : {
+            "$ref" : "#/responses/NODataIsAvailable"
+          },
+          "500" : {
+            "$ref" : "#/responses/UnexpectedError"
+          }
+        }
+      }
+    },
+    "/databases/types/{id}" : {
+      "get" : {
+        "tags" : [ "connection" ],
+        "security" : [ {
+          "Bearer" : [ ]
+        } ],
+        "description" : "lists all parameters required for estabilishing a new connection",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "description" : "identier of a database type",
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "schema" : {
+              "type" : "object",
+              "properties" : {
+                "type" : {
+                  "$ref" : "#/definitions/db-type-conn-info"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/databases/connections" : {
+      "post" : {
+        "tags" : [ "connection" ],
+        "security" : [ {
+          "Bearer" : [ ]
+        } ],
+        "description" : "Stage a database conenction information",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "connectionName",
+          "description" : "An unique name provided to identify this database connection in data landscape",
+          "type" : "string",
+          "required" : true
+        }, {
+          "in" : "query",
+          "name" : "dbTypeId",
+          "description" : "Id of database type",
+          "type" : "string",
+          "required" : true
+        }, {
+          "in" : "header",
+          "name" : "dbUser",
+          "description" : "user ID or name as part of the credential required for establishing a new connection to the database",
+          "type" : "string",
+          "required" : true
+        }, {
+          "in" : "header",
+          "name" : "dbPassword",
+          "description" : "password as part of the credential required for establishing a new connection to the database",
+          "type" : "string",
+          "required" : true
+        }, {
+          "in" : "query",
+          "name" : "excludedSchemas",
+          "description" : "list of comma seperated schema names which are not considered during metadata discovery",
+          "type" : "string"
+        }, {
+          "in" : "query",
+          "name" : "includedSchemas",
+          "description" : "list of comma seperated schema names which are considered during metadata discovery",
+          "type" : "string"
+        }, {
+          "in" : "query",
+          "name" : "application",
+          "description" : "name of application bakced by this database",
+          "type" : "string",
+          "required" : true
+        }, {
+          "in" : "query",
+          "name" : "lob",
+          "description" : "name of line of business driven by this database",
+          "type" : "string",
+          "required" : true
+        }, {
+          "in" : "query",
+          "name" : "dbCategory",
+          "description" : "database category. possible values are\n1. Development\n2. Test\n3. QA\n4. Prodcution",
+          "type" : "string",
+          "required" : true
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "schema" : {
+              "type" : "object",
+              "properties" : {
+                "connection" : {
+                  "$ref" : "#/definitions/stage-conenction-request-submitted"
+                }
+              }
+            }
+          },
+          "401" : {
+            "$ref" : "#/responses/AuthenticationError"
+          },
+          "400" : {
+            "$ref" : "#/responses/InvalidParameterEncounteredForAddData"
+          },
+          "500" : {
+            "$ref" : "#/responses/UnexpectedError"
+          },
+          "409" : {
+            "$ref" : "#/responses/DuplicateConnectionError"
+          }
+        }
+      },
+      "get" : {
+        "tags" : [ "connection" ],
+        "security" : [ {
+          "Bearer" : [ ]
+        } ],
+        "description" : "Lists available database connections",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "$ref" : "#/parameters/offset"
+        }, {
+          "$ref" : "#/parameters/limit"
+        }, {
+          "in" : "query",
+          "name" : "filter",
+          "type" : "string",
+          "required" : false,
+          "description" : "Filter out list of databases . Examples are as follows.\n1. filter=label eq 'AIS_DB'\n2. filter=label co 'DB'\n3. filter=label sw 'AIS'\n4. filter=label ew 'DB'"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "schema" : {
+              "type" : "object",
+              "properties" : {
+                "connections" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/definitions/database-conn-def"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "$ref" : "#/responses/AuthenticationError"
+          },
+          "404" : {
+            "$ref" : "#/responses/NODataIsAvailable"
+          },
+          "500" : {
+            "$ref" : "#/responses/UnexpectedError"
+          }
+        }
+      }
+    },
+    "/databases/connections/{id}" : {
+      "patch" : {
+        "tags" : [ "connection" ],
+        "security" : [ {
+          "Bearer" : [ ]
+        } ],
+        "description" : "Updates attributes of the mentioned database connection. Followings are the common parameters. The database specific connection parameters can be passed here as well",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "type" : "string",
+          "required" : true,
+          "description" : "The gid of a database connection"
+        }, {
+          "in" : "query",
+          "name" : "connectionName",
+          "description" : "An unique name provided to identify this database connection in data landscape",
+          "type" : "string"
+        }, {
+          "in" : "header",
+          "name" : "dbUser",
+          "description" : "user ID or name as part of the credential required for establishing a new connection to the database",
+          "type" : "string"
+        }, {
+          "in" : "header",
+          "name" : "dbPassword",
+          "description" : "password as part of the credential required for establishing a new connection to the database",
+          "type" : "string"
+        }, {
+          "in" : "query",
+          "name" : "excludedSchemas",
+          "description" : "list of comma seperated schema names which are not considered during metadata discovery",
+          "type" : "string"
+        }, {
+          "in" : "query",
+          "name" : "includedSchemas",
+          "description" : "list of comma seperated schema names which are considered during metadata discovery",
+          "type" : "string"
+        }, {
+          "in" : "query",
+          "name" : "application",
+          "description" : "name of application bakced by this database",
+          "type" : "string"
+        }, {
+          "in" : "query",
+          "name" : "lob",
+          "description" : "name of line of business driven by this database",
+          "type" : "string"
+        }, {
+          "in" : "query",
+          "name" : "dbCategory",
+          "description" : "database category. possible values are\n1. Development\n2. Test\n3. QA\n4. Prodcution",
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "schema" : {
+              "type" : "object",
+              "properties" : {
+                "connection" : {
+                  "$ref" : "#/definitions/conenction-attributes-updated"
+                }
+              }
+            }
+          },
+          "401" : {
+            "$ref" : "#/responses/AuthenticationError"
+          },
+          "400" : {
+            "$ref" : "#/responses/InvalidParameterEncounteredForAddData"
+          },
+          "404" : {
+            "$ref" : "#/responses/ObjectNotFound"
+          },
+          "500" : {
+            "$ref" : "#/responses/UnexpectedError"
+          },
+          "409" : {
+            "$ref" : "#/responses/DuplicateConnectionError"
+          }
+        }
+      },
+      "get" : {
+        "tags" : [ "connection" ],
+        "security" : [ {
+          "Bearer" : [ ]
+        } ],
+        "description" : "Provides the details of the given database connection",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "type" : "string",
+          "required" : true,
+          "description" : "The gid of a database connection"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "schema" : {
+              "type" : "object",
+              "$ref" : "#/definitions/database-conn-def-with-schemas"
+            }
+          },
+          "401" : {
+            "$ref" : "#/responses/AuthenticationError"
+          },
+          "404" : {
+            "$ref" : "#/responses/ObjectNotFound"
+          },
+          "500" : {
+            "$ref" : "#/responses/UnexpectedError"
+          }
+        }
+      }
+    },
+    "/databases/connections/{id}/tests" : {
+      "post" : {
+        "tags" : [ "connection" ],
+        "security" : [ {
+          "Bearer" : [ ]
+        } ],
+        "description" : "Test the given database connection",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "type" : "string",
+          "required" : true,
+          "description" : "The gid of a database connection"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "schema" : {
+              "type" : "object",
+              "properties" : {
+                "test" : {
+                  "$ref" : "#/definitions/database-conenction-tested"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/responses/UnableTOConnectError"
+          },
+          "401" : {
+            "$ref" : "#/responses/AuthenticationError"
+          },
+          "404" : {
+            "$ref" : "#/responses/ObjectNotFound"
+          },
+          "500" : {
+            "$ref" : "#/responses/UnexpectedError"
+          }
+        }
+      }
+    },
+    "/system/commands" : {
+      "get" : {
+        "tags" : [ "command" ],
+        "security" : [ {
+          "Bearer" : [ ]
+        } ],
+        "description" : "Provides list of all available commands supported by software",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "$ref" : "#/parameters/offset"
+        }, {
+          "$ref" : "#/parameters/limit"
+        }, {
+          "in" : "query",
+          "name" : "filter",
+          "type" : "string",
+          "required" : false,
+          "description" : "Filter out list of commands"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "schema" : {
+              "type" : "object",
+              "properties" : {
+                "commands" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/definitions/command"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "$ref" : "#/responses/AuthenticationError"
+          },
+          "404" : {
+            "$ref" : "#/responses/NODataIsAvailable"
+          },
+          "500" : {
+            "$ref" : "#/responses/UnexpectedError"
+          }
+        }
+      }
+    },
+    "/system/commands/{commandId}" : {
+      "get" : {
+        "tags" : [ "command" ],
+        "security" : [ {
+          "Bearer" : [ ]
+        } ],
+        "description" : "Get list of parameters for a given command.",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "$ref" : "#/parameters/commandId"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "schema" : {
+              "type" : "object",
+              "properties" : {
+                "id" : {
+                  "type" : "string",
+                  "description" : "id of command"
+                },
+                "label" : {
+                  "type" : "string",
+                  "description" : "name of command"
+                },
+                "parameters" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/definitions/parameter"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "$ref" : "#/responses/AuthenticationError"
+          },
+          "404" : {
+            "$ref" : "#/responses/NODataIsAvailable"
+          },
+          "500" : {
+            "$ref" : "#/responses/UnexpectedError"
+          }
+        }
+      }
+    },
+    "/system/commands/{commandId}/invocations" : {
+      "get" : {
+        "tags" : [ "command" ],
+        "security" : [ {
+          "Bearer" : [ ]
+        } ],
+        "description" : "Lists all invocations for a given system command.",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "$ref" : "#/parameters/commandId"
+        }, {
+          "$ref" : "#/parameters/offset"
+        }, {
+          "$ref" : "#/parameters/limit"
+        }, {
+          "in" : "query",
+          "name" : "filter",
+          "type" : "string",
+          "required" : false,
+          "description" : "Filter out list of invocations . Examples are as follows.\n1. filter=label eq 'Discover'\n2. filter=label co 'scan'"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "schema" : {
+              "type" : "object",
+              "properties" : {
+                "invocations" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "object",
+                    "properties" : {
+                      "id" : {
+                        "type" : "string",
+                        "description" : "id of the invocation"
+                      },
+                      "label" : {
+                        "type" : "string",
+                        "description" : "Name of the invocation"
+                      },
+                      "errorCode" : {
+                        "type" : "string",
+                        "description" : "error code to identify error"
+                      },
+                      "timestamp" : {
+                        "type" : "string",
+                        "description" : "timestamp"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "$ref" : "#/responses/AuthenticationError"
+          },
+          "404" : {
+            "$ref" : "#/responses/NODataIsAvailable"
+          },
+          "500" : {
+            "$ref" : "#/responses/UnexpectedError"
+          },
+          "503" : {
+            "$ref" : "#/responses/UnableToConnectToRedis"
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "command" ],
+        "security" : [ {
+          "Bearer" : [ ]
+        } ],
+        "description" : "Submits a given command and provides an invocation id in response. Here are the query parameters which are common for all the available commands. Please refer to the GET /system/commands/{commandId} to get the list of all parameters for invoking a specific command",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "$ref" : "#/parameters/commandId"
+        }, {
+          "in" : "query",
+          "name" : "priority",
+          "type" : "string",
+          "description" : "Priority for task allocation. It must be among the following values\n1. Background\n2. Very Low\n3. Low\n4. Normal\n5. High\n6. Very High",
+          "required" : false,
+          "default" : "Normal"
+        }, {
+          "in" : "query",
+          "name" : "parallelCount",
+          "type" : "integer",
+          "required" : false,
+          "description" : "No of taks to run in parallel",
+          "default" : 2
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "SUCCESS",
+            "schema" : {
+              "type" : "object",
+              "properties" : {
+                "invocation" : {
+                  "$ref" : "#/definitions/created-invocation"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/responses/FailedToExecuteAsyncCommand"
+          },
+          "401" : {
+            "$ref" : "#/responses/AuthenticationError"
+          },
+          "404" : {
+            "$ref" : "#/responses/ServiceConfigurationNotAvailable"
+          },
+          "500" : {
+            "$ref" : "#/responses/UnexpectedError"
+          }
+        }
+      }
+    },
+    "/system/commands/{commandId}/invocations/{invocationId}" : {
+      "get" : {
+        "tags" : [ "command" ],
+        "security" : [ {
+          "Bearer" : [ ]
+        } ],
+        "description" : "Provides detailed information about the status of a given command invocation.",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "$ref" : "#/parameters/commandId"
+        }, {
+          "$ref" : "#/parameters/invocationId"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "schema" : {
+              "type" : "object",
+              "properties" : {
+                "id" : {
+                  "type" : "string",
+                  "description" : "id of command"
+                },
+                "label" : {
+                  "type" : "string",
+                  "description" : "name of command"
+                },
+                "job" : {
+                  "$ref" : "#/definitions/job"
+                }
+              }
+            }
+          },
+          "401" : {
+            "$ref" : "#/responses/AuthenticationError"
+          },
+          "404" : {
+            "$ref" : "#/responses/ObjectNotFound"
+          },
+          "500" : {
+            "$ref" : "#/responses/UnexpectedError"
+          }
+        }
+      }
+    }
+  },
+  "definitions" : {
+    "db-type-conn-info" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "connectionParameters" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/conn-param"
+          },
+          "example" : [ {
+            "name" : "db-usr",
+            "required" : true
+          }, {
+            "name" : "db-pwd",
+            "required" : true
+          } ]
+        }
+      }
+    },
+    "conn-param" : {
+      "type" : "object",
+      "properties" : {
+        "name" : {
+          "type" : "string"
+        },
+        "required" : {
+          "type" : "boolean"
+        }
+      }
+    },
+    "entity" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "description" : "id of entity"
+        },
+        "label" : {
+          "type" : "string",
+          "description" : "name of entity"
+        }
+      }
+    },
+    "error-msg" : {
+      "type" : "object",
+      "properties" : {
+        "developerMessage" : {
+          "type" : "string"
+        },
+        "userMessage" : {
+          "type" : "string"
+        },
+        "errorCode" : {
+          "type" : "string"
+        }
+      }
+    },
+    "add-conenction-request-submitted" : {
+      "type" : "object",
+      "properties" : {
+        "label" : {
+          "type" : "string",
+          "description" : "Name of database instance"
+        },
+        "connectionName" : {
+          "type" : "string",
+          "description" : "Genric name for the database connection"
+        },
+        "message" : {
+          "type" : "string",
+          "description" : "Successfully submitted reuest for creating a new connection"
+        }
+      }
+    },
+    "command-services" : {
+      "type" : "array",
+      "items" : {
+        "$ref" : "#/definitions/command-service"
+      },
+      "example" : [ {
+        "id" : "103916076",
+        "label" : "Table Discovery and Surface Scan Service",
+        "parameters" : [ {
+          "name" : "Schema Names",
+          "required" : true
+        }, {
+          "name" : "Find Row Count from System Tables(Yes/No)",
+          "required" : false,
+          "possible-values" : "Yes,No",
+          "default" : "Yes"
+        } ]
+      } ]
+    },
+    "command-service" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "description" : "ID of this service configuration"
+        },
+        "label" : {
+          "type" : "string",
+          "description" : "Name of this service cobnfiguration"
+        },
+        "parmeters" : {
+          "type" : "array",
+          "description" : "XML template of input parameters for this service configuration",
+          "items" : {
+            "$ref" : "#/definitions/command-service-param"
+          }
+        }
+      }
+    },
+    "command-service-param" : {
+      "type" : "object",
+      "properties" : {
+        "name" : {
+          "type" : "string",
+          "description" : "name of a parameter"
+        },
+        "required" : {
+          "type" : "boolean",
+          "description" : "mandatory or not"
+        },
+        "possible-values" : {
+          "type" : "string",
+          "description" : "possible values"
+        },
+        "default" : {
+          "type" : "string",
+          "description" : "default value"
+        }
+      }
+    },
+    "excluded-schemas" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "description" : "Id of the staged connection"
+        },
+        "label" : {
+          "type" : "string",
+          "description" : "Name of database instance"
+        },
+        "connectionName" : {
+          "type" : "string",
+          "description" : "Genric name for the database connection"
+        },
+        "excluded-schemas" : {
+          "type" : "integer",
+          "description" : "No of schemas excluded for this given connection"
+        }
+      }
+    },
+    "stage-conenction-request-submitted" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "description" : "Id of the staged connection"
+        },
+        "label" : {
+          "type" : "string",
+          "description" : "Name of database instance"
+        },
+        "database" : {
+          "type" : "string",
+          "description" : "Genric name for the database connection"
+        },
+        "type" : {
+          "type" : "object",
+          "properties" : {
+            "id" : {
+              "type" : "string",
+              "description" : "Id of the staged connection"
+            },
+            "label" : {
+              "type" : "string",
+              "description" : "Name of database instance"
+            }
+          }
+        },
+        "timestamp" : {
+          "type" : "string",
+          "description" : "Timestamp of staging new connection entry"
+        }
+      }
+    },
+    "database-conenction-tested" : {
+      "type" : "object",
+      "properties" : {
+        "connection" : {
+          "type" : "object",
+          "properties" : {
+            "id" : {
+              "type" : "string",
+              "description" : "Id of the staged connection"
+            },
+            "label" : {
+              "type" : "string",
+              "description" : "Name of database instance"
+            },
+            "database" : {
+              "type" : "string",
+              "description" : "Genric name for the database connection"
+            },
+            "type" : {
+              "type" : "object",
+              "properties" : {
+                "id" : {
+                  "type" : "string",
+                  "description" : "Id of the staged connection"
+                },
+                "label" : {
+                  "type" : "string",
+                  "description" : "Name of database instance"
+                }
+              }
+            }
+          }
+        },
+        "status" : {
+          "type" : "string",
+          "description" : "Status of the given database connection"
+        },
+        "timestamp" : {
+          "type" : "string",
+          "description" : "Timestamp of staging new connection entry"
+        }
+      }
+    },
+    "conenction-attributes-updated" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "description" : "Id of the given connection"
+        },
+        "label" : {
+          "type" : "string",
+          "description" : "Name of database instance"
+        },
+        "database" : {
+          "type" : "string",
+          "description" : "Genric name for the given connection"
+        },
+        "updated" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/conn-updated-attributes"
+          }
+        },
+        "timestamp" : {
+          "type" : "string",
+          "description" : "Timestamp of updating attributes of the given connection"
+        }
+      }
+    },
+    "database-type" : {
+      "type" : "object",
+      "properties" : {
+        "label" : {
+          "type" : "string",
+          "description" : "Database type name"
+        },
+        "port" : {
+          "type" : "number",
+          "description" : "Default port this type of database runs on"
+        }
+      }
+    },
+    "conn-updated-attributes" : {
+      "type" : "object",
+      "properties" : {
+        "parameter" : {
+          "type" : "string",
+          "description" : "Name of the updated attributes"
+        },
+        "value" : {
+          "type" : "string",
+          "description" : "Updated value of the given attribute"
+        }
+      }
+    },
+    "database-def" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "description" : "id of the database connection"
+        },
+        "label" : {
+          "type" : "string",
+          "description" : "Genric name fot the new connection"
+        },
+        "connectionName" : {
+          "type" : "string",
+          "description" : "Name of the new database connection"
+        },
+        "host" : {
+          "type" : "string",
+          "description" : "System name or host where the database is running"
+        },
+        "port" : {
+          "type" : "integer",
+          "description" : "Port at which the database service is listening to"
+        },
+        "dbType" : {
+          "type" : "string",
+          "enum" : [ "Derby", "Oracle" ]
+        },
+        "application" : {
+          "type" : "object",
+          "properties" : {
+            "id" : {
+              "type" : "string",
+              "description" : "id of application"
+            },
+            "label" : {
+              "type" : "string",
+              "description" : "name of application"
+            }
+          }
+        },
+        "lob" : {
+          "type" : "object",
+          "properties" : {
+            "id" : {
+              "type" : "string",
+              "description" : "id of lob"
+            },
+            "label" : {
+              "type" : "string",
+              "description" : "name of lob"
+            }
+          }
+        },
+        "addedBy" : {
+          "type" : "object",
+          "properties" : {
+            "id" : {
+              "type" : "string",
+              "description" : "id of the user who added this connection"
+            },
+            "label" : {
+              "type" : "string",
+              "description" : "Name of the user who added this connection"
+            }
+          }
+        }
+      }
+    },
+    "database-conn-def" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "description" : "id of the database connection"
+        },
+        "label" : {
+          "type" : "string",
+          "description" : "Name of the new database connection"
+        },
+        "database" : {
+          "type" : "string",
+          "description" : "Genric name fot the new connection"
+        },
+        "system" : {
+          "type" : "string",
+          "description" : "System name or host where the database is running"
+        },
+        "dbPort" : {
+          "type" : "integer",
+          "description" : "Port at which the database service is listening to"
+        },
+        "type" : {
+          "type" : "object",
+          "properties" : {
+            "id" : {
+              "type" : "string",
+              "description" : "Id of the staged connection"
+            },
+            "label" : {
+              "type" : "string",
+              "description" : "Name of database instance"
+            }
+          }
+        },
+        "dbCategory" : {
+          "type" : "string",
+          "enum" : [ "Development", "Test", "QA", "Production" ]
+        },
+        "application" : {
+          "type" : "object",
+          "properties" : {
+            "id" : {
+              "type" : "string",
+              "description" : "id of application"
+            },
+            "label" : {
+              "type" : "string",
+              "description" : "name of application"
+            }
+          }
+        },
+        "lob" : {
+          "type" : "object",
+          "properties" : {
+            "id" : {
+              "type" : "string",
+              "description" : "id of lob"
+            },
+            "label" : {
+              "type" : "string",
+              "description" : "name of lob"
+            }
+          }
+        },
+        "excluded-schemas" : {
+          "type" : "string",
+          "description" : "comma seperated list of schema names which will not be considered during metadata discovery"
+        },
+        "included-schemas" : {
+          "type" : "string",
+          "description" : "comma seperated list of schema names only which will be considered during metadata discovery"
+        },
+        "addedBy" : {
+          "type" : "object",
+          "properties" : {
+            "id" : {
+              "type" : "string",
+              "description" : "id of the user who added this connection"
+            },
+            "label" : {
+              "type" : "string",
+              "description" : "Name of the user who added this connection"
+            }
+          }
+        }
+      }
+    },
+    "database-conn-def-with-schemas" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "description" : "id of the database connection"
+        },
+        "label" : {
+          "type" : "string",
+          "description" : "Name of the new database connection"
+        },
+        "database" : {
+          "type" : "string",
+          "description" : "Genric name fot the new connection"
+        },
+        "system" : {
+          "type" : "string",
+          "description" : "System name or host where the database is running"
+        },
+        "dbPort" : {
+          "type" : "integer",
+          "description" : "Port at which the database service is listening to"
+        },
+        "type" : {
+          "type" : "object",
+          "properties" : {
+            "id" : {
+              "type" : "string",
+              "description" : "Id of the staged connection"
+            },
+            "label" : {
+              "type" : "string",
+              "description" : "Name of database instance"
+            }
+          }
+        },
+        "dbCategory" : {
+          "type" : "string",
+          "enum" : [ "Development", "Test", "QA", "Production" ]
+        },
+        "application" : {
+          "type" : "object",
+          "properties" : {
+            "id" : {
+              "type" : "string",
+              "description" : "id of application"
+            },
+            "label" : {
+              "type" : "string",
+              "description" : "name of application"
+            }
+          }
+        },
+        "lob" : {
+          "type" : "object",
+          "properties" : {
+            "id" : {
+              "type" : "string",
+              "description" : "id of lob"
+            },
+            "label" : {
+              "type" : "string",
+              "description" : "name of lob"
+            }
+          }
+        },
+        "excluded-schemas" : {
+          "type" : "string",
+          "description" : "comma seperated list of schema names which will not be considered during metadata discovery"
+        },
+        "included-schemas" : {
+          "type" : "string",
+          "description" : "comma seperated list of schema names only which will be considered during metadata discovery"
+        },
+        "addedBy" : {
+          "type" : "object",
+          "properties" : {
+            "id" : {
+              "type" : "string",
+              "description" : "id of the user who added this connection"
+            },
+            "label" : {
+              "type" : "string",
+              "description" : "Name of the user who added this connection"
+            }
+          }
+        },
+        "schemas" : {
+          "type" : "array",
+          "items" : {
+            "type" : "object",
+            "properties" : {
+              "id" : {
+                "type" : "string",
+                "description" : "id of the schema"
+              },
+              "label" : {
+                "type" : "string",
+                "description" : "Name of the schema"
+              }
+            }
+          }
+        }
+      }
+    },
+    "connection-request-def" : {
+      "type" : "object",
+      "properties" : {
+        "connectionName" : {
+          "type" : "string",
+          "description" : "Genric name fot the new connection"
+        },
+        "label" : {
+          "type" : "string",
+          "description" : "Name of the new database connection"
+        },
+        "host" : {
+          "type" : "string",
+          "description" : "System name or host where the database is running"
+        },
+        "port" : {
+          "type" : "integer",
+          "description" : "Port at which the database service is listening to"
+        },
+        "dbType" : {
+          "type" : "string",
+          "enum" : [ "Oracle", "Derby" ]
+        },
+        "user" : {
+          "type" : "string",
+          "description" : "User of the database connection"
+        },
+        "password" : {
+          "type" : "string",
+          "description" : "Password for the database connection"
+        },
+        "application" : {
+          "type" : "string",
+          "description" : "the name of the application"
+        },
+        "lob" : {
+          "type" : "string",
+          "description" : "the name of the lob"
+        }
+      },
+      "example" : {
+        "connectionName" : "CRM@newton",
+        "label" : "CRM",
+        "host" : "192.168.33.10",
+        "port" : 1521,
+        "dbType" : "Oracle",
+        "user" : "globalids",
+        "password" : "globalids123",
+        "application" : "CRM APP",
+        "lob" : "Enterprise"
+      }
+    },
+    "job" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "description" : "id of the job"
+        },
+        "label" : {
+          "type" : "string",
+          "description" : "Name of the job"
+        },
+        "status" : {
+          "type" : "string",
+          "description" : "current status of job"
+        },
+        "createdOn" : {
+          "type" : "string",
+          "description" : "job creation time"
+        },
+        "submittedBy" : {
+          "type" : "string",
+          "description" : "user who submitted the task"
+        },
+        "taskgroups" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/taskgroup"
+          }
+        }
+      }
+    },
+    "taskgroup" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "description" : "id of the taskgroup"
+        },
+        "label" : {
+          "type" : "string",
+          "description" : "Name of the taskgroup"
+        },
+        "startTime" : {
+          "type" : "string",
+          "description" : "start time of taskgroup"
+        },
+        "endTime" : {
+          "type" : "string",
+          "description" : "end time of taskgroup"
+        },
+        "status" : {
+          "type" : "string",
+          "description" : "current status of task group"
+        },
+        "succeeded" : {
+          "type" : "integer",
+          "description" : "Number of tasks succeeded"
+        },
+        "failed" : {
+          "type" : "integer",
+          "description" : "Number of tasks failed"
+        },
+        "scheduled" : {
+          "type" : "integer",
+          "description" : "Number of tasks scheduled"
+        },
+        "running" : {
+          "type" : "integer",
+          "description" : "Name of the tasks running"
+        }
+      }
+    },
+    "parameter" : {
+      "type" : "object",
+      "properties" : {
+        "name" : {
+          "type" : "string",
+          "description" : "name of parameter"
+        },
+        "required" : {
+          "type" : "string",
+          "description" : "Parameter is required or not",
+          "enum" : [ "true", "false" ]
+        },
+        "possible-values" : {
+          "type" : "string",
+          "description" : "Possible values"
+        },
+        "default-value" : {
+          "type" : "string",
+          "description" : "Default value"
+        }
+      }
+    },
+    "command" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "description" : "id of command"
+        },
+        "label" : {
+          "type" : "string",
+          "description" : "name of command"
+        }
+      }
+    },
+    "created-invocation" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "description" : "id of invocation"
+        },
+        "command" : {
+          "type" : "string",
+          "description" : "name of command"
+        },
+        "jobDetails" : {
+          "type" : "object",
+          "properties" : {
+            "workflowId" : {
+              "type" : "string",
+              "description" : "id of worklow"
+            },
+            "chainId" : {
+              "type" : "string",
+              "description" : "id of chain"
+            },
+            "taskGroupId" : {
+              "type" : "string",
+              "description" : "id of taskgroup"
+            },
+            "url" : {
+              "type" : "string",
+              "description" : "url to job details"
+            }
+          }
+        }
+      }
+    }
+  },
+  "parameters" : {
+    "offset" : {
+      "name" : "offset",
+      "in" : "query",
+      "description" : "The offset within the result set to begin returning values. Default is 0",
+      "required" : false,
+      "type" : "integer",
+      "format" : "int32"
+    },
+    "limit" : {
+      "name" : "limit",
+      "in" : "query",
+      "description" : "The upper limit of the query result set. Default is 10",
+      "required" : false,
+      "type" : "integer",
+      "format" : "int32"
+    },
+    "commandId" : {
+      "in" : "path",
+      "name" : "commandId",
+      "type" : "string",
+      "required" : true,
+      "description" : "The gid of a command"
+    },
+    "invocationId" : {
+      "in" : "path",
+      "name" : "invocationId",
+      "type" : "string",
+      "required" : true,
+      "description" : "The gid of an invocation"
+    }
+  },
+  "responses" : {
+    "GeneralSuccess" : {
+      "description" : "General success"
+    },
+    "AuthenticationError" : {
+      "description" : "Authorization information is missing or invalid.\n\nImportant note - Error response will never be a JSON array. The example given here showes different type of error responses of same HTTP status code.",
+      "schema" : {
+        "$ref" : "#/definitions/error-msg"
+      },
+      "examples" : {
+        "application/json" : [ {
+          "developerMessage" : "Authentication Faiure",
+          "userMessage" : "Operation specified invalid authentication token",
+          "errorCode" : "40101"
+        }, {
+          "developerMessage" : "Authentication Failure",
+          "userMessage" : "Authentication token expired",
+          "errorCode" : "40102"
+        }, {
+          "developerMessage" : "Authentication Failure",
+          "userMessage" : "No authentication token provided",
+          "errorCode" : "40103"
+        } ]
+      }
+    },
+    "UnexpectedError" : {
+      "description" : "Unexpected error",
+      "schema" : {
+        "$ref" : "#/definitions/error-msg"
+      },
+      "examples" : {
+        "application/json" : {
+          "developerMessage" : "Unexpected condition encountered",
+          "userMessage" : "Oops, this wasn't supposed to happen",
+          "errorCode" : "50001"
+        }
+      }
+    },
+    "DuplicateConnectionError" : {
+      "description" : "Another connection with this name already exists",
+      "schema" : {
+        "$ref" : "#/definitions/error-msg"
+      },
+      "examples" : {
+        "application/json" : [ {
+          "developerMessage" : "Conflict",
+          "userMessage" : "Another connection with similar name exists",
+          "errorCode" : "40902"
+        }, {
+          "developerMessage" : "Conflict",
+          "userMessage" : "Another connection with similar infromation exists",
+          "errorCode" : "40902"
+        } ]
+      }
+    },
+    "UnableTOConnectError" : {
+      "description" : "Failed to connect to given source database\nImportant note - Error response will never be a JSON array. The example given here showes different type of error responses of same HTTP status code.",
+      "schema" : {
+        "$ref" : "#/definitions/error-msg"
+      },
+      "examples" : {
+        "application/json" : [ {
+          "developerMessage" : "Database Authentication Failure",
+          "userMessage" : "Invalid username/password; login denied",
+          "errorCode" : "40008"
+        }, {
+          "developerMessage" : "Network Failure",
+          "userMessage" : "Network Adapter could NOT establish connection to source database",
+          "errorCode" : "40009"
+        }, {
+          "developerMessage" : "Connection Refused",
+          "userMessage" : "Database not Running",
+          "errorCode" : "40010"
+        }, {
+          "developerMessage" : "Connection Failure",
+          "userMessage" : "Failed to connect to database",
+          "errorCode" : "40011"
+        } ]
+      }
+    },
+    "InvalidParameterEncounteredForAddData" : {
+      "description" : "This operation has specified an invalid parameter\nImportant note - Error response will never be a JSON array. The example given here showes different type of error responses of same HTTP status code.",
+      "schema" : {
+        "$ref" : "#/definitions/error-msg"
+      },
+      "examples" : {
+        "application/json" : [ {
+          "developerMessage" : "Operation failed to post data",
+          "userMessage" : "No parameters provided in request",
+          "errorCode" : "40003"
+        }, {
+          "developerMessage" : "Operation specified invalid parameter",
+          "userMessage" : "Please provide valid input parameters",
+          "errorCode" : "40004"
+        }, {
+          "developerMessage" : "Operation specified invalid database port number",
+          "userMessage" : "Please provide valid port",
+          "errorCode" : "40004"
+        }, {
+          "developerMessage" : "Operation specified invalid database category",
+          "userMessage" : "Please provide valid database category",
+          "errorCode" : "40004"
+        }, {
+          "developerMessage" : "Operation specified unknown database type",
+          "userMessage" : "Please provide valid database type",
+          "errorCode" : "40004"
+        }, {
+          "developerMessage" : "Operation has not specified required parameter",
+          "userMessage" : "Required parameter missing",
+          "missingParameter" : "<Name of the parameter>",
+          "errorCode" : "40005"
+        } ]
+      }
+    },
+    "NODataIsAvailable" : {
+      "description" : "No data is available",
+      "schema" : {
+        "$ref" : "#/definitions/error-msg"
+      },
+      "examples" : {
+        "application/json" : {
+          "developerMessage" : "Operation found no data",
+          "userMessage" : "No data available",
+          "errorCode" : "40402"
+        }
+      }
+    },
+    "ObjectNotFound" : {
+      "description" : "Operation has not found specified object",
+      "schema" : {
+        "$ref" : "#/definitions/error-msg"
+      },
+      "examples" : {
+        "application/json" : {
+          "developerMessage" : "Operation has not found specified object",
+          "userMessage" : "Specified object not found",
+          "errorCode" : "40402"
+        }
+      }
+    },
+    "ServiceConfigurationNotAvailable" : {
+      "description" : "Service configuration is not found",
+      "schema" : {
+        "$ref" : "#/definitions/error-msg"
+      },
+      "examples" : {
+        "application/json" : [ {
+          "developerMessage" : "Command not available",
+          "userMessage" : "Given command not available",
+          "errorCode" : "40402"
+        }, {
+          "developerMessage" : "Configuration not available for command = <serviceName>",
+          "userMessage" : "Specified command not available",
+          "errorCode" : "40410"
+        }, {
+          "developerMessage" : "No interface available for command = <serviceName>",
+          "userMessage" : "Specified command not available",
+          "errorCode" : "40411"
+        } ]
+      }
+    },
+    "FailedToExecuteAsyncCommand" : {
+      "description" : "Failed to execute this operation. Important note - Error response will never be a JSON array. The example given here showes different type of error responses of same HTTP status code.",
+      "schema" : {
+        "$ref" : "#/definitions/error-msg"
+      },
+      "examples" : {
+        "application/json" : [ {
+          "developerMessage" : "Invalid value(s) encountered",
+          "userMessage" : "Value = <value> not available in possible values = <possible values> for parameter <parameter name>",
+          "errorCode" : "40020"
+        }, {
+          "developerMessage" : "Required parameter(s) missing",
+          "userMessage" : "Parameter <parameter name> not available in input",
+          "errorCode" : "40021"
+        }, {
+          "developerMessage" : "Unable to parse given input parameter",
+          "userMessage" : "Given input format not valid",
+          "errorCode" : "40022"
+        }, {
+          "developerMessage" : "No ArgumentTreeSet generated",
+          "userMessage" : "Could not generate task arguments",
+          "errorCode" : "40023"
+        }, {
+          "developerMessage" : "Error encountered : <actual error during class loading >",
+          "userMessage" : "Operation failed to execute due to internal error",
+          "errorCode" : "40024"
+        }, {
+          "developerMessage" : "Error encountered : < actual java errror >",
+          "userMessage" : "Operation failed to execute due to internal error",
+          "errorCode" : "40025"
+        } ]
+      }
+    },
+    "UnableToConnectToRedis" : {
+      "description" : "Could not connect to metadata repository",
+      "schema" : {
+        "$ref" : "#/definitions/error-msg"
+      },
+      "examples" : {
+        "application/json" : {
+          "developerMessage" : "Failed to connect to redis server",
+          "userMessage" : "Could not connect to metadata repository",
+          "errorCode" : "50303"
+        }
+      }
+    }
+  },
+  "schemes" : [ "https" ],
+  "host" : "virtserver.swaggerhub.com",
+  "basePath" : "/gid_api/discovery/1"
+}
